@@ -6,7 +6,6 @@ import sys
 import os
 
 # Добавляем путь к рабочему столу, чтобы能找到 simple_chart.py
-sys.path.insert(0, r'C:\Users\im\Desktop\astro_bot')
 from simple_chart import calculate_natal_chart
 
 # ========== ВСТАВЬ СВОИ КЛЮЧИ ==========
@@ -210,7 +209,22 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "😔 Извините, сервис временно перегружен. Попробуйте через пару минут."
     )
+# --- БЛОК ДЛЯ RENDER (ОТКРЫТЫЙ ПОРТ) ---
+from threading import Thread
+from flask import Flask
 
+flask_app = Flask(__name__)
+
+@flask_app.route('/')
+def health():
+    return "Бот работает", 200
+
+def run_flask():
+    port = int(os.environ.get("PORT", 10000))
+    flask_app.run(host="0.0.0.0", port=port)
+
+Thread(target=run_flask, daemon=True).start()
+# --- КОНЕЦ БЛОКА ---
 app = Application.builder().token(TELEGRAM_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
